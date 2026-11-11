@@ -1,0 +1,104 @@
+<view class="page">
+  <!-- 顶部问候 -->
+  <view class="header">
+    <view>
+      <view class="greet">{{greeting}}</view>
+      <view class="date">{{today}}</view>
+    </view>
+    <view class="avatar">{{avatarText}}</view>
+  </view>
+
+  <!-- Banner -->
+  <view class="banner" bindtap="goTasks">
+    <view class="banner-title">芯光数智 · 算力运维与 AI 推理</view>
+    <view class="banner-sub">CMDB · CI/CD · 任务编排 · K8s 一体</view>
+  </view>
+
+  <!-- 置顶应用 -->
+  <view class="wb-section-title">置顶应用</view>
+  <view class="pinned-grid">
+    <view class="pinned-item" bindtap="goAssets">
+      <view class="app-ic" style="background:#3B82F6">▦</view>
+      <view class="app-name">资产查询</view>
+    </view>
+    <view class="pinned-item" bindtap="goTasks">
+      <view class="app-ic" style="background:#EF4444">▷</view>
+      <view class="app-name">推理任务</view>
+    </view>
+    <view class="pinned-item" bindtap="goAlerts">
+      <view class="app-ic" style="background:#F59E0B">!</view>
+      <view class="app-name">告警中心</view>
+    </view>
+  </view>
+
+  <!-- 最高级别告警条 -->
+  <view class="alert-bar" wx:if="{{overview.top_alert}}" bindtap="goAlerts">
+    <view class="alert-stripe"></view>
+    <view class="alert-body">
+      <view class="alert-title">{{overview.top_alert.title}}</view>
+      <view class="alert-sub">{{overview.top_alert.detail}}</view>
+    </view>
+    <view class="arrow">›</view>
+  </view>
+
+  <!-- 指标卡 2x2 -->
+  <view class="metrics">
+    <view class="metric" bindtap="goAssets">
+      <view class="m-label">服务器</view>
+      <view class="m-val num">{{overview.server.online}}<text class="m-denom"> / {{overview.server.total}}</text></view>
+    </view>
+    <view class="metric">
+      <view class="m-label">GPU 在用</view>
+      <view class="m-val num">{{overview.gpu.used}}<text class="m-denom"> / {{overview.gpu.total}}</text></view>
+    </view>
+    <view class="metric" bindtap="goTasks">
+      <view class="m-label">推理任务</view>
+      <view class="m-val num">{{overview.task.running}}<text class="m-denom"> / 排队 {{overview.task.pending}}</text></view>
+    </view>
+    <view class="metric" bindtap="goAlerts">
+      <view class="m-label">未处理告警</view>
+      <view class="m-val num txt-err">{{overview.alert_unread}}</view>
+    </view>
+  </view>
+
+  <!-- 常用应用（彩色图标网格） -->
+  <view class="wb-section-title">常用应用</view>
+  <view class="app-grid">
+    <view class="app-item" wx:for="{{apps}}" wx:key="key" bindtap="goApp" data-key="{{item.key}}">
+      <view class="app-ic" style="background:{{item.color}}">{{item.ic}}</view>
+      <view class="app-name">{{item.name}}</view>
+    </view>
+  </view>
+
+  <!-- 最近任务 -->
+  <view class="section-head">
+    <text>最近任务</text>
+    <text class="more" bindtap="goTasks">全部 ›</text>
+  </view>
+  <view class="task-list">
+    <view class="task-item" wx:for="{{overview.recent_tasks}}" wx:key="id" bindtap="goTaskDetail" data-id="{{item.id}}">
+      <view class="t-name">{{item.name}}</view>
+      <view class="t-right">
+        <view class="status-dot">
+          <view class="dot dot-{{item.statusColor}}"></view>
+          <text class="txt-{{item.statusColor}}">{{item.statusLabel}}</text>
+        </view>
+        <text class="t-gpu num">{{item.gpu}} 卡</text>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{!overview.recent_tasks.length}}">暂无数据</view>
+  </view>
+
+  <!-- 公告 / 通知 -->
+  <view class="wb-section-title" style="margin-top:28rpx">公告 / 通知</view>
+  <view class="notice-card">
+    <view class="notice-item" wx:for="{{alerts}}" wx:key="index">
+      <text class="nt">{{item.title}}</text>
+      <text class="nd">{{item.level==='error'?'错误':'警告'}}</text>
+    </view>
+    <view class="notice-item" wx:if="{{!alerts.length}}">
+      <text class="nt">暂无公告，系统运行正常</text>
+      <text class="nd">—</text>
+    </view>
+  </view>
+</view>

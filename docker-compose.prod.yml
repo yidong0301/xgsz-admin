@@ -1,0 +1,143 @@
+name: xgsz-prod
+
+# 生产部署：域名 + HTTPS（替换 cpolar 临时隧道）
+# 用法：
+#   1. 准备证书：./scripts/init_https.sh --domain ops.example.com --email ops@example.com
+#      本地自签验证：./scripts/init_https.sh --domain local.test --self-signed
+#   2. 启动：docker compose -f docker-compose.prod.yml up -d
+#   3. 续期：docker compose -f docker-compose.prod.yml --profile certbot up -d certbot
+#
+# 说明：生产环境不再暴露 MySQL/Redis/MongoDB 端口；K8s 访问通过挂载的 kubeconfig。
+
+x-backend-env: &backend-env
+  DB_HOST: mysql
+  DB_PORT: "3306"
+  DB_USER: root
+  DB_PASS: ${DB_PASS:-root123456}
+  DB_TABLE: xgsz_admin
+  CACHES_REDIS_HOST: redis
+  CACHES_REDIS_PORT: "6379"
+  CACHES_REDIS_DB: "8"
+  CACHES_REDIS_PASS: ""
+  CELERY_BROKER_REDIS_HOST: redis
+  CELERY_BROKER_REDIS_PORT: "6379"
+  CELERY_BROKER_REDIS_DB: "4"
+  CELERY_BROKER_REDIS_PASS: ""
+  CELERY_BACKEND_REDIS_HOST: redis
+  CELERY_BACKEND_REDIS_PORT: "6379"
+  CELERY_BACKEND_REDIS_DB: "5"
+  CELERY_BACKEND_REDIS_PASS: ""
+  MONGO_HOST: mongo
+  MONGO_PORT: "27017"
+  CHANNELS_REDIS_URL: redis://redis:6379/0
+  KUBECONFIG_DIR: /root/.kube/clusters
+  K8S_EXPECTED_CLUSTERS_COUNT: "8"
+
+services:
+  mysql:
+    image: mysql:5.7
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-root123456}
+      MYSQL_DATABASE: xgsz_admin
+    volumes:
+      - prod-mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:6-alpine
+    restart: unless-stopped
+    command: --appendonly yes
+    volumes:
+      - prod-redis-data:/data
+
+  mongo:
+    image: mongo:4.4
+    restart: unless-stopped
+    volumes:
+      - prod-mongo-data:/data/db
+
+  backend:
+    build: ./xgsz-admin
+    restart: unless-stopped
+    expose:
+      - "8000"
+    depends_on:
+      - mysql
+      - redis
+      - mongo
+    environment: *backend-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./kube/config:/root/.kube/config:ro
+      - ./kube/clusters:/root/.kube/clusters:ro
+    healthcheck:
+      # 只探 8000 端口是否可连（/api 需要鉴权，不能直接 curl）
+      test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('127.0.0.1',8000),3).close()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  celery-worker:
+    build: ./xgsz-admin
+    command: celery -A xgsz_admin worker --pool=solo -l INFO
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - redis
+    environment: *backend-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./kube/config:/root/.kube/config:ro
+      - ./kube/clusters:/root/.kube/clusters:ro
+
+  celery-beat:
+    build: ./xgsz-admin
+    command: celery -A xgsz_admin beat -l info
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - redis
+    environment: *backend-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./kube/config:/root/.kube/config:ro
+      - ./kube/clusters:/root/.kube/clusters:ro
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      DOMAIN: ${DOMAIN:?请先 export DOMAIN=ops.example.com}
+      SSL_CERTIFICATE: /etc/letsencrypt/live/${DOMAIN}/fullchain.pem
+      SSL_CERTIFICATE_KEY: /etc/letsencrypt/live/${DOMAIN}/privkey.pem
+    volumes:
+      - ./xgsz-admin-web:/usr/share/nginx/html:ro
+      - ./nginx/prod/templates:/etc/nginx/templates:ro
+      - ./nginx/certs:/etc/letsencrypt:ro
+      - ./nginx/www:/var/www/certbot:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # 证书自动续期（可选 profile，首次签发见 scripts/init_https.sh）
+  certbot:
+    image: certbot/certbot
+    profiles: ["certbot"]
+    restart: unless-stopped
+    volumes:
+      - ./nginx/certs:/etc/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;'
+
+volumes:
+  prod-mysql-data:
+  prod-redis-data:
+  prod-mongo-data:

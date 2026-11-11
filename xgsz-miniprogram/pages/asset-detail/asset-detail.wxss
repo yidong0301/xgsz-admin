@@ -1,0 +1,8 @@
+.head { text-align: center; padding: 40rpx 30rpx; margin-bottom: 20rpx; }
+.d-title { font-size: 36rpx; font-weight: 700; color: #1E293B; margin-bottom: 12rpx; }
+.kv { display: flex; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid #F0F0F0; font-size: 28rpx; }
+.kv:last-child { border-bottom: none; }
+.k { color: #94A3B8; }
+.v { color: #1E293B; }
+.readonly { text-align: center; font-size: 22rpx; color: #B0B8C4; margin-top: 30rpx; }
+.empty { padding: 80rpx; text-align: center; color: #B0B8C4; }

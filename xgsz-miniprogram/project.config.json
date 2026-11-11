@@ -1,0 +1,16 @@
+{
+  "description": "芯光数智 移动控制台小程序",
+  "packOptions": { "ignore": [], "include": [] },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "2.32.3",
+  "appid": "touristappid",
+  "projectname": "xgsz-miniprogram",
+  "condition": {}
+}

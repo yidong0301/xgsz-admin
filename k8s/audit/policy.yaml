@@ -1,0 +1,75 @@
+# 芯光数智 · K8s 审计日志策略（kube-apiserver audit policy）
+#
+# 用法（kind 集群）：
+#   kind create cluster --name xgsz --config kind-audit.yaml
+# 其中 kind-audit.yaml 的 kubeadmConfigPatches 挂载本文件并开启审计：
+#
+#   kind: Cluster
+#   apiVersion: kind.x-k8s.io/v1alpha4
+#   nodes:
+#   - role: control-plane
+#     kubeadmConfigPatches:
+#     - |
+#       kind: ClusterConfiguration
+#       apiServer:
+#         extraArgs:
+#           audit-log-path: /var/log/kubernetes/audit/audit.log
+#           audit-log-maxage: "30"
+#           audit-log-maxbackup: "10"
+#           audit-log-maxsize: "100"
+#           audit-policy-file: /etc/kubernetes/audit/policy.yaml
+#         extraVolumes:
+#         - name: audit-policy
+#           hostPath: /etc/kubernetes/audit/policy.yaml
+#           mountPath: /etc/kubernetes/audit/policy.yaml
+#           readOnly: true
+#         - name: audit-log
+#           hostPath: /var/log/kubernetes/audit
+#           mountPath: /var/log/kubernetes/audit
+#           pathType: DirectoryOrCreate
+#
+# 记录范围：关键写操作 RequestResponse 全量记录，读操作只记 Metadata，健康检查不记。
+
+apiVersion: audit.k8s.io/v1
+kind: Policy
+omitStages:
+  - "RequestReceived"
+rules:
+  # 平台核心工作负载：全量记录请求与响应体（谁、何时、对什么、结果）
+  - level: RequestResponse
+    resources:
+      - group: ""
+        resources: ["pods", "pods/exec", "pods/log", "pods/portforward", "services", "configmaps", "secrets", "resourcequotas"]
+      - group: "apps"
+        resources: ["deployments", "statefulsets", "replicasets"]
+      - group: "batch"
+        resources: ["jobs", "cronjobs"]
+      - group: "rbac.authorization.k8s.io"
+        resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+    verbs: ["create", "update", "patch", "delete", "deletecollection"]
+
+  # 命名空间 / 节点等集群级资源：记录元数据
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["namespaces", "nodes", "persistentvolumes"]
+    verbs: ["create", "update", "patch", "delete"]
+
+  # 其余写操作记录元数据
+  - level: Metadata
+    omitStages: ["RequestReceived"]
+    verbs: ["create", "update", "patch", "delete"]
+
+  # 读操作只记元数据，避免日志量过大
+  - level: Metadata
+    verbs: ["get", "list", "watch"]
+
+  # 健康检查噪音忽略
+  - level: None
+    users: ["system:kube-proxy"]
+    verbs: ["watch"]
+    resources:
+      - group: ""
+        resources: ["endpoints", "services"]
+  - level: None
+    nonResourceURLs: ["/healthz*", "/livez*", "/readyz*", "/metrics"]

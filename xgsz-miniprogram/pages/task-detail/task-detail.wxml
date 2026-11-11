@@ -1,0 +1,27 @@
+<view class="page" wx:if="{{task.id}}">
+  <view class="card head">
+    <view class="d-title">{{task.name}}</view>
+    <view class="status-dot">
+      <view class="dot dot-{{task.color}}"></view>
+      <text class="txt-{{task.color}}">{{task.label}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="kv"><text class="k">镜像</text><text class="v">{{task.image || '-'}}</text></view>
+    <view class="kv"><text class="k">命名空间</text><text class="v">{{task.namespace || '-'}}</text></view>
+    <view class="kv"><text class="k">CPU / 内存</text><text class="v">{{task.cpu}} / {{task.memory}}</text></view>
+    <view class="kv"><text class="k">GPU</text><text class="v">{{task.gpu}} 卡</text></view>
+    <view class="kv"><text class="k">负责人</text><text class="v">{{task.owner || '-'}}</text></view>
+  </view>
+
+  <view class="card">
+    <view class="log-title">任务日志</view>
+    <view class="log">{{task.log || '暂无日志'}}</view>
+  </view>
+
+  <button class="btn-danger stop" wx:if="{{canStop}}" bindtap="onStop">终止任务</button>
+</view>
+<view class="page" wx:else>
+  <view class="empty">加载中…</view>
+</view>

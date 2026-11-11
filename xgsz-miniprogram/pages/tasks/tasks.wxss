@@ -1,0 +1,18 @@
+.search { background: #fff; border-radius: 20rpx; padding: 16rpx 24rpx; margin-bottom: 16rpx; }
+.search input { font-size: 28rpx; height: 48rpx; }
+.filters { white-space: nowrap; margin-bottom: 16rpx; }
+.chip {
+  display: inline-block; padding: 10rpx 26rpx; margin-right: 14rpx;
+  border-radius: 30rpx; font-size: 24rpx; color: #64748B;
+  background: #fff; border: 1rpx solid #E8ECF1;
+}
+.chip.active { color: #185FA5; border-color: #185FA5; background: #EEF3FB; }
+.task-list { background: #fff; border-radius: 24rpx; overflow: hidden; }
+.task-item { padding: 26rpx 28rpx; border-bottom: 1rpx solid #F0F0F0; }
+.task-item:last-child { border-bottom: none; }
+.row1 { display: flex; justify-content: space-between; align-items: center; }
+.t-name { font-size: 30rpx; font-weight: 600; color: #1E293B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; margin-right: 16rpx; }
+.row2 { margin-top: 10rpx; font-size: 24rpx; color: #94A3B8; }
+.dot-sep { margin: 0 8rpx; }
+.empty { padding: 80rpx; text-align: center; color: #B0B8C4; }
+.empty-ic { font-size: 60rpx; margin-bottom: 12rpx; }

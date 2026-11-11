@@ -1,0 +1,29 @@
+<view class="page">
+  <view class="search">
+    <input placeholder="搜索 IP / 资产编号 / 主机名" value="{{keyword}}" bindinput="onSearch" confirm-type="search" bindconfirm="load" />
+  </view>
+  <scroll-view class="filters" scroll-x="true" show-scrollbar="false">
+    <view class="chip {{filter===item.key?'active':''}}" wx:for="{{filters}}" wx:key="key" bindtap="setFilter" data-key="{{item.key}}">{{item.label}}</view>
+  </scroll-view>
+
+  <view class="asset-list">
+    <view class="asset-item" wx:for="{{assets}}" wx:key="key" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="row1">
+        <text class="a-name">{{item.title}}</text>
+        <view class="status-dot"><view class="dot dot-{{item.color}}"></view><text class="txt-{{item.color}}">{{item.statusLabel}}</text></view>
+      </view>
+      <view class="row2">
+        <text class="num">{{item.ip}}</text>
+        <text class="dot-sep">·</text>
+        <text>{{item.gpuLabel}}</text>
+        <text class="dot-sep">·</text>
+        <text>{{item.cluster}}</text>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{!assets.length}}">
+      <view class="empty-ic">▦</view>
+      <view>暂无数据</view>
+      <view class="empty-tip">资产修改请在 PC 端 xgsz-admin 操作</view>
+    </view>
+  </view>
+</view>

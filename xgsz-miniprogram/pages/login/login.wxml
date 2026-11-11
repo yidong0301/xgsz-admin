@@ -1,0 +1,23 @@
+<view class="login-page">
+  <view class="brand">
+    <image class="logo" src="/assets/logo.png" mode="aspectFit"></image>
+    <view class="name">芯光数智</view>
+    <view class="sub">算力运维 · AI 推理调度平台</view>
+  </view>
+
+  <view class="form">
+    <view class="field">
+      <input class="input" placeholder="请输入账号" value="{{username}}" bindinput="onUsername" />
+    </view>
+    <view class="field">
+      <input class="input" password="{{!showPwd}}" placeholder="请输入密码" value="{{password}}" bindinput="onPassword" />
+      <text class="eye" bindtap="togglePwd">{{showPwd ? '隐藏' : '显示'}}</text>
+    </view>
+    <view class="hint">登录后 30 天内免登录</view>
+
+    <button class="btn-primary login-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="onLogin">登录</button>
+    <view class="err-tip" wx:if="{{errMsg}}">{{errMsg}}</view>
+  </view>
+
+  <view class="footer">仅限内部人员使用 · 数据安全规范</view>
+</view>

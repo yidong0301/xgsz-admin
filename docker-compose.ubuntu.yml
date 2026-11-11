@@ -1,0 +1,169 @@
+name: xgsz
+
+# 芯光数智 · Ubuntu 生产部署（使用预构建镜像，不依赖本机编译）
+# 用法：
+#   1. cp .env.ubuntu.example .env，编辑 DOMAIN / DB_PASS / SECRET_KEY
+#   2. sudo bash scripts/deploy_ubuntu.sh
+#   3. 浏览器访问 https://<DOMAIN>
+#
+# 说明：
+# - 该文件不包含 build，镜像由交付包 images/ 下 tar 导入；
+# - MySQL/Redis/MongoDB 不对宿主机暴露端口；
+# - K8s 多集群 kubeconfig 放在 ./kube/clusters/<集群名>.yaml。
+
+x-backend-env: &backend-env
+  DB_HOST: mysql
+  DB_PORT: "3306"
+  DB_USER: root
+  DB_PASS: ${DB_PASS:?请在 .env 配置 DB_PASS}
+  DB_TABLE: xgsz_admin
+  CACHES_REDIS_HOST: redis
+  CACHES_REDIS_PORT: "6379"
+  CACHES_REDIS_DB: "8"
+  CACHES_REDIS_PASS: ""
+  CELERY_BROKER_REDIS_HOST: redis
+  CELERY_BROKER_REDIS_PORT: "6379"
+  CELERY_BROKER_REDIS_DB: "4"
+  CELERY_BROKER_REDIS_PASS: ""
+  CELERY_BACKEND_REDIS_HOST: redis
+  CELERY_BACKEND_REDIS_PORT: "6379"
+  CELERY_BACKEND_REDIS_DB: "5"
+  CELERY_BACKEND_REDIS_PASS: ""
+  MONGO_HOST: mongo
+  MONGO_PORT: "27017"
+  CHANNELS_REDIS_URL: redis://redis:6379/0
+  KUBECONFIG_DIR: /root/.kube/clusters
+  K8S_EXPECTED_CLUSTERS_COUNT: "8"
+  DEBUG: "False"
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+  SECRET_KEY: ${SECRET_KEY:?请在 .env 配置 SECRET_KEY}
+
+services:
+  mysql:
+    image: mysql:5.7
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:?请在 .env 配置 DB_PASS}
+      MYSQL_DATABASE: xgsz_admin
+    volumes:
+      - xgsz-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  redis:
+    image: redis:6-alpine
+    restart: unless-stopped
+    command: --appendonly yes
+    volumes:
+      - xgsz-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
+
+  mongo:
+    image: mongo:4.4
+    restart: unless-stopped
+    volumes:
+      - xgsz-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    image: xgsz/admin-backend:${XGSZ_VERSION:-latest}
+    restart: unless-stopped
+    expose:
+      - "8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    environment: *backend-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./kube:/root/.kube:ro
+      - ./data:/app/data:ro
+    healthcheck:
+      # 只探 8000 端口是否可连（/api 需要鉴权，不能直接 curl）
+      test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('127.0.0.1',8000),3).close()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  celery-worker:
+    image: xgsz/admin-backend:${XGSZ_VERSION:-latest}
+    command: celery -A xgsz_admin worker --pool=solo -l INFO
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    environment: *backend-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./kube:/root/.kube:ro
+
+  celery-beat:
+    image: xgsz/admin-backend:${XGSZ_VERSION:-latest}
+    command: celery -A xgsz_admin beat -l info
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    environment: *backend-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./kube:/root/.kube:ro
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      DOMAIN: ${DOMAIN:?请在 .env 配置 DOMAIN}
+      SSL_CERTIFICATE: /etc/letsencrypt/live/${DOMAIN}/fullchain.pem
+      SSL_CERTIFICATE_KEY: /etc/letsencrypt/live/${DOMAIN}/privkey.pem
+    volumes:
+      - ./xgsz-admin-web:/usr/share/nginx/html:ro
+      - ./nginx/prod/templates:/etc/nginx/templates:ro
+      - ./nginx/certs:/etc/letsencrypt:ro
+      - ./nginx/www:/var/www/certbot:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # 可选：证书自动续期（首次签发由 deploy_ubuntu.sh 完成）
+  certbot:
+    image: certbot/certbot
+    profiles: ["certbot"]
+    restart: unless-stopped
+    volumes:
+      - ./nginx/certs:/etc/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;'
+
+volumes:
+  xgsz-mysql-data:
+  xgsz-redis-data:
+  xgsz-mongo-data:

@@ -1,0 +1,8 @@
+.task-item { padding: 26rpx 28rpx; border-bottom: 1rpx solid #F0F0F0; }
+.task-item:last-child { border-bottom: none; }
+.row1 { display: flex; justify-content: space-between; align-items: center; }
+.t-name { font-size: 30rpx; font-weight: 600; color: #1E293B; }
+.row2 { margin-top: 10rpx; font-size: 24rpx; color: #94A3B8; }
+.dot-sep { margin: 0 8rpx; }
+.empty { padding: 80rpx; text-align: center; color: #B0B8C4; }
+.empty-ic { font-size: 60rpx; margin-bottom: 12rpx; }

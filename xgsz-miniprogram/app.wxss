@@ -1,0 +1,89 @@
+/* 芯光数智 移动控制台 全局样式（工业控制台设计令牌） */
+page {
+  --c-bg: #F5F7FA;
+  --c-card: #FFFFFF;
+  --c-line: #E8ECF1;
+  --c-primary: #185FA5;
+  --c-cyan: #17A2B8;
+  --c-ok: #16A34A;
+  --c-warn: #D97706;
+  --c-err: #DC2626;
+  --c-off: #94A3B8;
+  --c-text: #1E293B;
+  --c-text2: #64748B;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 28rpx;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 数字等宽 */
+.num { font-variant-numeric: tabular-nums; }
+
+/* 卡片 */
+.card {
+  background: var(--c-card);
+  border-radius: 28rpx;
+  padding: 28rpx 30rpx;
+}
+
+/* 状态：6rpx 圆点 + 同色文字 */
+.status-dot { display: inline-flex; align-items: center; gap: 8rpx; font-size: 24rpx; }
+.status-dot .dot { width: 12rpx; height: 12rpx; border-radius: 50%; flex-shrink: 0; }
+.dot-ok { background: var(--c-ok); }
+.dot-warn { background: var(--c-warn); }
+.dot-err { background: var(--c-err); }
+.dot-off { background: var(--c-off); }
+.txt-ok { color: var(--c-ok); }
+.txt-warn { color: var(--c-warn); }
+.txt-err { color: var(--c-err); }
+.txt-off { color: var(--c-off); }
+
+/* 页面容器 */
+.page { min-height: 100vh; padding: 24rpx 24rpx calc(24rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+
+/* 分割线 */
+.line { height: 1rpx; background: var(--c-line); }
+
+/* 主按钮 */
+.btn-primary {
+  background: var(--c-primary);
+  color: #fff;
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  padding: 24rpx 0;
+  text-align: center;
+}
+.btn-primary[disabled] { opacity: 0.5; }
+
+/* 次要按钮 */
+.btn-ghost {
+  background: #fff;
+  color: var(--c-primary);
+  border: 1rpx solid var(--c-primary);
+  border-radius: 24rpx;
+  font-size: 28rpx;
+  padding: 20rpx 0;
+  text-align: center;
+}
+
+/* 危险按钮（描边，非实底） */
+.btn-danger {
+  background: #fff;
+  color: var(--c-err);
+  border: 1rpx solid var(--c-err);
+  border-radius: 24rpx;
+  font-size: 28rpx;
+  padding: 20rpx 0;
+  text-align: center;
+}
+.btn-danger[disabled] { color: var(--c-off); border-color: var(--c-line); }
+
+/* 轻提示 */
+.toast {
+  position: fixed; left: 50%; bottom: 160rpx; transform: translateX(-50%);
+  background: rgba(15, 20, 26, 0.85); color: #fff; padding: 16rpx 32rpx;
+  border-radius: 40rpx; font-size: 26rpx; z-index: 999;
+}

@@ -1,0 +1,21 @@
+<view class="page">
+  <view class="profile card">
+    <view class="avatar">{{avatarText}}</view>
+    <view class="p-info">
+      <view class="p-name">{{user.name || '未登录'}}</view>
+      <view class="p-role">{{user.id ? '平台用户' : ''}}</view>
+    </view>
+  </view>
+
+  <view class="menu">
+    <view class="menu-item" bindtap="goAudit">
+      <text>操作日志</text><text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goAbout">
+      <text>关于芯光数智</text><text class="arrow">›</text>
+    </view>
+  </view>
+
+  <view class="ver">芯光数智 · 移动控制台 v1.0</view>
+  <button class="btn-danger logout" bindtap="logout">退出登录</button>
+</view>

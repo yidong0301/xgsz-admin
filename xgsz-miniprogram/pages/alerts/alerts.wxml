@@ -1,0 +1,21 @@
+<view class="page">
+  <view class="seg">
+    <view class="seg-item {{tab==='all'?'active':''}}" bindtap="setTab" data-tab="all">全部</view>
+    <view class="seg-item {{tab==='unread'?'active':''}}" bindtap="setTab" data-tab="unread">未处理</view>
+  </view>
+
+  <view class="alert-list">
+    <view class="alert-item" wx:for="{{alerts}}" wx:key="index">
+      <view class="a-stripe {{item.level==='error'?'err':'warn'}}"></view>
+      <view class="a-body">
+        <view class="a-title">{{item.title}}</view>
+        <view class="a-sub">{{item.detail}}</view>
+      </view>
+      <view class="a-time">{{item.time || '刚刚'}}</view>
+    </view>
+    <view class="empty" wx:if="{{!alerts.length}}">
+      <view class="empty-ic">✓</view>
+      <view>暂无数据</view>
+    </view>
+  </view>
+</view>

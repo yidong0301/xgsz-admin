@@ -1,0 +1,19 @@
+<view class="page">
+  <view class="task-list">
+    <view class="task-item" wx:for="{{records}}" wx:key="id">
+      <view class="row1">
+        <text class="t-name">{{item.name}}</text>
+        <view class="status-dot"><view class="dot dot-{{item.color}}"></view><text class="txt-{{item.color}}">{{item.label}}</text></view>
+      </view>
+      <view class="row2">
+        <text>版本 {{item.version || '-'}}</text>
+        <text class="dot-sep">·</text>
+        <text>{{item.time}}</text>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{!records.length}}">
+      <view class="empty-ic">⚙</view>
+      <view>暂无数据</view>
+    </view>
+  </view>
+</view>

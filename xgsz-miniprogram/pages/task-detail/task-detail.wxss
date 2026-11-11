@@ -1,0 +1,10 @@
+.head { text-align: center; padding: 36rpx 30rpx; margin-bottom: 20rpx; }
+.d-title { font-size: 34rpx; font-weight: 700; color: #1E293B; margin-bottom: 12rpx; }
+.kv { display: flex; justify-content: space-between; padding: 20rpx 0; border-bottom: 1rpx solid #F0F0F0; font-size: 28rpx; }
+.kv:last-child { border-bottom: none; }
+.k { color: #94A3B8; }
+.v { color: #1E293B; }
+.log-title { font-size: 28rpx; font-weight: 600; color: #1E293B; margin-bottom: 14rpx; }
+.log { background: #0F172A; color: #D1FAE5; border-radius: 14rpx; padding: 20rpx; font-size: 22rpx; line-height: 1.6; max-height: 500rpx; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+.stop { margin-top: 24rpx; }
+.empty { padding: 80rpx; text-align: center; color: #B0B8C4; }

@@ -1,0 +1,21 @@
+<view class="page" wx:if="{{asset.title}}">
+  <view class="card head">
+    <view class="d-title">{{asset.title}}</view>
+    <view class="status-dot">
+      <view class="dot dot-{{asset.color}}"></view>
+      <text class="txt-{{asset.color}}">{{asset.statusLabel}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="kv"><text class="k">资产编号</text><text class="v">{{asset.key || '-'}}</text></view>
+    <view class="kv"><text class="k">内网 IP</text><text class="v num">{{asset.ip}}</text></view>
+    <view class="kv"><text class="k">GPU 数量</text><text class="v">{{asset.gpuLabel}}</text></view>
+    <view class="kv"><text class="k">归属/位置</text><text class="v">{{asset.cluster}}</text></view>
+  </view>
+
+  <view class="readonly">资产信息为只读，修改请前往 PC 端 xgsz-admin</view>
+</view>
+<view class="page" wx:else>
+  <view class="empty">暂无数据</view>
+</view>

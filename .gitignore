@@ -1,0 +1,82 @@
+# ============ Python ============
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+venv/
+.venv/
+env/
+
+# ============ 本地环境 / IDE ============
+.idea/
+.vscode/
+*.swp
+
+# ============ 依赖与打包产物 ============
+dist/
+archive/
+ansible_pkg/
+node_modules/
+*.tar.gz
+*.zip
+
+# ============ 敏感 / 机器相关（不进仓库） ============
+.env
+.env.*
+kube/*
+!kube/clusters/
+kube/clusters/*
+!kube/clusters/.gitkeep
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.ppk
+*.p8
+id_rsa*
+id_ed25519*
+*.kubeconfig
+.netrc
+.npmrc
+.pypirc
+logs/
+nginx/certs/live/
+nginx/certs/archive/
+nginx/certs/renewal/
+nginx/certs/csr/
+nginx/certs/accounts/
+nginx/www/.well-known/
+
+# ============ 日志 / 临时文件 ============
+*.log
+cpolar-out*.txt
+cpolar-err*.txt
+pip-install.log
+prd_extract.txt
+celerybeat.pid
+*.pid
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*~
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.sqlite3
+status.txt
+
+# ============ 穿透工具二进制 ============
+tools/cpolar/
+tools/cloudflared*
+tools/ngrok*
+
+# ============ 系统文件 ============
+.DS_Store
+Thumbs.db
